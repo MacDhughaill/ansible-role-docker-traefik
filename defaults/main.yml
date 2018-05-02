@@ -1,0 +1,13 @@
+---
+docker_traefik_default_domain: docker.localhost
+docker_traefik_container_env:
+  TZ: Etc/UTC
+docker_traefik_container_name: traefik
+docker_traefik_lets_encrypt_email:
+docker_traefik_network_name: traefiknet
+# Staging server used to prevent accidentally destroying the weekly limits.
+# https://letsencrypt.org/docs/rate-limits/
+docker_traefik_staging_server_enabled: true
+docker_traefik_toml_copy_src:
+docker_traefik_toml_directory: /opt/traefik
+docker_traefik_toml_template: true

@@ -1,0 +1,46 @@
+---
+# Consult defaults/main.yml to learn about the role variables.
+- block:
+  - file:
+      path: "{{ docker_traefik_toml_directory}}{{ item.path }}"
+      state: "{{ item.state }}"
+      mode: 0600
+    with_items:
+      - { path: '', state: 'directory' }
+      - { path: '/acme.json', state: 'touch' }
+
+  - template:
+      src: traefik.toml.j2
+      dest: "{{ docker_traefik_toml_directory}}/traefik.toml"
+      force: true
+    when: docker_traefik_toml_template
+
+  - copy:
+      src: "{{ docker_traefik_toml_copy_src }}"
+      dest: "{{ docker_traefik_toml_directory }}/traefik.toml"
+      force: true
+    when: not docker_traefik_toml_template
+
+  - docker_network:
+      name: "{{ docker_traefik_network_name }}"
+      state: present
+
+  - docker_container:
+      name: "{{ docker_traefik_container_name }}"
+      image: traefik:1.5.2
+      state: started
+      recreate: true
+      restart_policy: unless-stopped
+      env: "{{ docker_traefik_container_env }}"
+      networks:
+        - name: "{{ docker_traefik_network_name }}"
+      purge_networks: true
+      published_ports:
+        - 80:80
+        - 8080:8080
+        - 443:443
+      volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /opt/traefik/traefik.toml:/traefik.toml:ro
+      - /opt/traefik/acme.json:/acme.json
+  become: true
